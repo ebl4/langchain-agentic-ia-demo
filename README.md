@@ -8,6 +8,12 @@
 
 ### Installation
 
+Make a copy of example.env
+```bash
+# Create .env file
+cp example.env .env
+```
+
 Edit the .env file to include the keys below for [Models](#model-providers) 
 
 - Get a Google API Key [here](https://ai.google.dev/gemini-api/docs/quickstart).

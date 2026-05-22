@@ -1,0 +1,6 @@
+// Ignore python and uv environments files
+.venv
+__pycache__/
+.env
+uv.lock
+lc_agentic_ia_demo.egg-info
