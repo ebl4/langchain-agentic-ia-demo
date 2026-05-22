@@ -1,7 +1,9 @@
 from langchain.agents import create_agent
 import asyncio
 
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_mcp_adapters.client import MultiServerMCPClient
+from marshmallow import pprint
 from mcp.shared.exceptions import McpError
 from mcp.types import CallToolResult, TextContent
 
@@ -46,16 +48,17 @@ class RetryMCPInterceptor:
             isError=False,
         )
 
-
 class TravelAgent:
     """Travel agent for finding flights to wedding destinations."""
 
-    def __init__(self):
+    def __init__(self, model: ChatGoogleGenerativeAI):
         self.client = None
         self.agent = None
+        self.model = model
 
     async def initialize(self):
         """Initialize the MCP client and create the agent."""
+        pprint("Creating and initializing TravelAgent...")
         self.client = MultiServerMCPClient(
             {
                 "travel_server": {
@@ -65,11 +68,11 @@ class TravelAgent:
             },
             tool_interceptors=[RetryMCPInterceptor()],
         )
-
         tools = await self.client.get_tools()
+        pprint(f"TravelAgent retrieved tools: {tools}")
 
         self.agent = create_agent(
-            model="gpt-5-nano",
+            model=self.model,
             tools=tools,
             system_prompt="""
             You are a travel agent. Search for flights to the desired destination wedding location.
@@ -85,20 +88,16 @@ class TravelAgent:
             """
         )
 
-    async def close(self):
-        """Close the MCP client connection."""
-        if self.client:
-            await self.client.close()
-
     def get_agent(self):
         """Get the initialized agent."""
+        pprint("Getting TravelAgent...")
         if self.agent is None:
             raise RuntimeError("Agent not initialized. Call initialize() first.")
         return self.agent
 
-
-async def get_travel_agent():
+async def get_travel_agent(model: ChatGoogleGenerativeAI):
     """Factory function to create and initialize a TravelAgent."""
-    travel_agent = TravelAgent()
+    pprint("Creating and initializing TravelAgent...")
+    travel_agent = TravelAgent(model)
     await travel_agent.initialize()
-    return travel_agent
+    return travel_agent.get_agent()
